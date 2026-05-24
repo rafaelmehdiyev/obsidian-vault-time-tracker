@@ -1,0 +1,23 @@
+{
+  "name": "vault-time-tracker",
+  "version": "1.0.0",
+  "description": "Obsidian plugin: track per-note time across app switches",
+  "main": "main.js",
+  "scripts": {
+    "build": "node esbuild.config.mjs production",
+    "dev": "node esbuild.config.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "Rafael Mehdiyev",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.25.12",
+    "obsidian": "latest",
+    "typescript": "^5.4.0",
+    "vitest": "^3.2.4"
+  }
+}

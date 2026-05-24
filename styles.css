@@ -1,0 +1,234 @@
+/* ── Vault Time Tracker — styles ──────────────────────────────────────────── */
+
+/* Status bar item (bottom right, next to word count) */
+.vtt-statusbar {
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+}
+
+.vtt-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+  font-size: var(--font-ui-small);
+}
+
+/* Status bar */
+.vtt-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  flex-shrink: 0;
+  font-size: var(--font-ui-smaller);
+}
+
+.vtt-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.vtt-status-dot--active  { background-color: var(--color-green); }
+.vtt-status-dot--paused  { background-color: var(--color-yellow); }
+.vtt-status-dot--idle    { background-color: var(--text-muted); }
+
+.vtt-status-text {
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tab bar */
+.vtt-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--background-modifier-border);
+  flex-shrink: 0;
+  background: var(--background-primary);
+}
+
+.vtt-tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  padding: 8px 4px;
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.vtt-tab-btn:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+
+.vtt-tab-btn--active {
+  color: var(--text-normal);
+  border-bottom-color: var(--interactive-accent);
+  font-weight: 600;
+}
+
+/* Tab content */
+.vtt-tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 4px;
+}
+
+/* Tables */
+.vtt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-ui-small);
+}
+
+.vtt-table th {
+  text-align: left;
+  padding: 4px 6px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--background-modifier-border);
+  position: sticky;
+  top: 0;
+  background: var(--background-primary);
+  z-index: 1;
+}
+
+.vtt-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--background-modifier-border-focus);
+  vertical-align: middle;
+}
+
+.vtt-table tbody tr:hover {
+  background: var(--background-modifier-hover);
+}
+
+.vtt-time-col {
+  text-align: right;
+  white-space: nowrap;
+  width: 80px;
+}
+
+.vtt-time-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-normal);
+}
+
+.vtt-note-name {
+  max-width: 160px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.vtt-note-link {
+  color: var(--text-normal);
+  text-decoration: none;
+}
+
+.vtt-note-link:hover {
+  text-decoration: underline;
+  color: var(--text-accent);
+}
+
+.vtt-deleted {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.vtt-deleted-label {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-faint);
+  margin-left: 2px;
+}
+
+/* Footer / total rows */
+.vtt-total-row td {
+  font-weight: 600;
+  border-top: 2px solid var(--background-modifier-border);
+  border-bottom: none;
+  padding-top: 6px;
+}
+
+/* Weekly table — scrollable horizontal */
+.vtt-table-weekly {
+  min-width: 100%;
+}
+
+.vtt-table-weekly th,
+.vtt-table-weekly td {
+  min-width: 60px;
+}
+
+.vtt-today-col {
+  background: color-mix(in srgb, var(--interactive-accent) 8%, transparent);
+}
+
+.vtt-week-total-col {
+  border-left: 1px solid var(--background-modifier-border);
+  font-weight: 600;
+}
+
+/* Monthly heading */
+.vtt-month-heading {
+  margin: 4px 6px 8px;
+  font-size: var(--font-ui-medium);
+  color: var(--text-normal);
+}
+
+/* Empty state */
+.vtt-empty {
+  color: var(--text-muted);
+  padding: 16px 8px;
+  text-align: center;
+}
+
+/* ── Dashboard (full-page tab view) ─────────────────────────────────────────── */
+
+.vtt-dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  font-size: var(--font-ui-small);
+}
+
+.vtt-dashboard-table-wrapper {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 16px;
+}
+
+/* Override the sidebar's narrow truncation inside the dashboard */
+.vtt-dashboard .vtt-note-name {
+  max-width: none;
+  white-space: normal;
+}
+
+.vtt-folder-col {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  white-space: nowrap;
+  width: 1%;
+  padding-right: 8px !important;
+}
+
+.vtt-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.vtt-sortable:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}

@@ -1,0 +1,11 @@
+node_modules/
+main.js
+*.js.map
+*.tsbuildinfo
+data.json
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Claude Code session data (plans, local settings)
+.claude/
