@@ -1,7 +1,7 @@
 {
   "id": "vault-time-tracker",
   "name": "Vault Time Tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.4.0",
   "description": "Track time spent on notes. Timer keeps running even when app is running on background.",
   "author": "Rafael Mehdiyev",
