@@ -34,7 +34,7 @@ describe('Storage.migrate', () => {
     expect(d.settings.saveIntervalSeconds).toBe(60);
     // untouched defaults preserved
     expect(d.settings.timezone).toBe('auto');
-    expect(d.settings.idleThresholdMinutes).toBe(5);
+    expect(d.settings.idleThresholdMinutes).toBe(0);
   });
 
   it('preserves existing dailyTotals and sessions', () => {
