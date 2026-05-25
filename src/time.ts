@@ -1,4 +1,4 @@
-export function resolveTimezone(tz: string): string {
+function resolveTimezone(tz: string): string {
   return tz === 'auto' ? Intl.DateTimeFormat().resolvedOptions().timeZone : tz;
 }
 

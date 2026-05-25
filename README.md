@@ -15,9 +15,11 @@ This plugin ties time to the note you have open, not to whether Obsidian is the 
 ## What it does
 
 - Opens a note → tracking starts. Switch notes → first one pauses, second one begins. No manual interaction.
-- The timer keeps running when you minimize Obsidian or switch to another app. Idle detection (off by default unless configured) can pause it after a set period with no keyboard or mouse activity.
-- A **sidebar panel** with Daily, Weekly, and Monthly tabs shows your time per note over each period.
-- A **full-page dashboard** (opens in a new editor tab) adds a Folder column, full note names without truncation, full-path tooltips on hover, and sortable columns. Useful when you have several notes with similar names across different folders and the narrow sidebar makes them hard to tell apart.
+- Works with both Markdown notes (`.md`) and Canvas files (`.canvas`). Both are tracked the same way.
+- The timer keeps running when you minimize Obsidian or switch to another app. Idle detection (off by default) can pause it after a set period of inactivity.
+- When the last open tab of a tracked file is closed, tracking stops automatically.
+- A **sidebar panel** with Daily, Weekly, and Monthly tabs shows your time per note over each period. Canvas files appear with a small `canvas` badge to distinguish them from same-named notes.
+- A **full-page dashboard** (opens in a new editor tab) adds a Folder column, full note names without truncation, full-path tooltips on hover, and sortable columns. Useful when you have several notes with similar names across different folders.
 - The status bar shows the currently-tracked note and a live running total for today.
 - Notes you've deleted stay in the history with a `(deleted)` label.
 - Renames are tracked: time follows the note to its new name.
@@ -34,8 +36,6 @@ This plugin ties time to the note you have open, not to whether Obsidian is the 
 ### Community Plugins
 
 Search "Vault Time Tracker" in Settings → Community Plugins → Browse, install, and enable.
-
-> Submission to the community plugin store is in progress. Until it's approved, use the manual method below.
 
 ### Manual
 
@@ -62,11 +62,11 @@ Deleted notes stay in the record. Their names appear with a strikethrough and a 
 
 | Setting | Default | What it does |
 |---|---|---|
-| Count time while non-note views active | On | Keep timing the last note when you open Settings, Graph, or other non-note views. Turn off if you want the timer to stop whenever you leave an editor. |
+| Count time while non-note views are active | On | Keep timing the last note when you open Settings, Graph, or other non-note views. Turn off if you want the timer to stop the moment you leave an editor tab. |
 | Excluded folders | — | Pick folders from a dropdown. Notes inside excluded folders are never tracked. |
-| Idle detection mode | Auto | What counts as being away. Auto pauses only when your whole computer is idle, so switching to another app keeps the timer running. "Obsidian only" pauses whenever you switch to any other app. |
-| Idle threshold | 0 (off) | How many minutes of inactivity before the timer pauses. 0 means never pause. |
-| Auto-save interval | 30 s | How often time data is written to disk. |
+| Idle detection mode | Auto | What counts as being away. Auto pauses only when your whole computer is idle, so switching to another app keeps the timer running. "Obsidian only" pauses whenever you switch to any other app. "Off" never pauses automatically. |
+| Idle threshold (minutes) | 0 (off) | How many minutes of inactivity before the timer pauses. 0 means never pause. |
+| Auto-save interval (seconds) | 30 | How often to write time data to disk. Lower = safer against crashes, slightly more disk I/O. |
 | Week starts on | Monday | Changes the day order in the Weekly tab. |
 
 At the bottom of the settings tab: **Export JSON** saves a full copy of your data to the vault root, and **Clear all data** wipes everything after a confirmation prompt.
@@ -75,7 +75,7 @@ At the bottom of the settings tab: **Export JSON** saves a full copy of your dat
 
 All data is stored in `.obsidian/plugins/vault-time-tracker/data.json` inside your vault. Nothing is sent anywhere.
 
-The file contains three things: `dailyTotals` (per-day, per-note totals in milliseconds — kept forever), `sessions` (detailed session records with start/end times, pruned after the retention window), and `renames` (a short rename log, also pruned).
+The file contains three things: `dailyTotals` (per-day, per-note totals in milliseconds — kept forever), `sessions` (detailed session records with start/end times, pruned after 7 days by default), and `renames` (a short rename log, also pruned).
 
 ## Limitations
 

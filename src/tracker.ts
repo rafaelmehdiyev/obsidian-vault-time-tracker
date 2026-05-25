@@ -92,7 +92,6 @@ export class Tracker {
       if (this.status.status !== 'idle') {
         this.finalizeSession('switch');
         this.status = { status: 'idle' };
-        this.activeSession = null;
       }
       return;
     }
@@ -111,7 +110,6 @@ export class Tracker {
     if (this.lastKnownNotePath && !this.isFileOpenInWorkspace(this.lastKnownNotePath)) {
       this.finalizeSession('switch');
       this.status = { status: 'idle' };
-      this.activeSession = null;
       return;
     }
 
@@ -120,7 +118,6 @@ export class Tracker {
     if (!this.storage.getSettings().countWhileNonNoteViewActive) {
       this.finalizeSession('switch');
       this.status = { status: 'idle' };
-      this.activeSession = null;
     }
   }
 
@@ -146,7 +143,6 @@ export class Tracker {
       if (this.lastKnownNotePath && !this.isFileOpenInWorkspace(this.lastKnownNotePath)) {
         this.finalizeSession('switch');
         this.status = { status: 'idle' };
-        this.activeSession = null;
       }
       return;
     }
@@ -168,7 +164,6 @@ export class Tracker {
       if (isExcluded(newPath, this.storage.getSettings().excludedFolders)) {
         this.finalizeSession('excluded');
         this.status = { status: 'idle' };
-        this.activeSession = null;
       }
     }
   }
@@ -203,7 +198,6 @@ export class Tracker {
 
     if (isExcluded(newPath, this.storage.getSettings().excludedFolders)) {
       this.status = { status: 'paused', notePath: newPath, reason: 'excluded' };
-      this.activeSession = null;
       return;
     }
 
@@ -291,7 +285,6 @@ export class Tracker {
         this.finalizeSession('switch');
       }
       this.status = { status: 'idle' };
-      this.activeSession = null;
       this.lastKnownNotePath = null;
       this.notifyListeners();
       return;
