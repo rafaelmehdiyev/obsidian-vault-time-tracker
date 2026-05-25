@@ -1,5 +1,6 @@
 import { ItemView, WorkspaceLeaf } from 'obsidian';
 import { VIEW_TYPE } from '../types';
+import { getNoteName, isCanvasPath } from '../util';
 import { Storage } from '../storage';
 import { Tracker, TickListener } from '../tracker';
 import { DailyTab } from './DailyTab';
@@ -105,9 +106,13 @@ export class TimeTrackerView extends ItemView {
     if (status.status === 'tracking') {
       const live = this.tracker.getLiveTotal();
       const timeStr = live ? this.formatLive(live.totalMs) : '0s';
-      const noteName = status.notePath.split('/').pop()?.replace(/\.md$/, '') ?? status.notePath;
+      const noteName = getNoteName(status.notePath);
       this.statusBar.createSpan({ cls: 'vtt-status-dot vtt-status-dot--active' });
-      this.statusBar.createSpan({ text: ` ${noteName} · ${timeStr}`, cls: 'vtt-status-text' });
+      this.statusBar.createSpan({ text: ` ${noteName}`, cls: 'vtt-status-text' });
+      if (isCanvasPath(status.notePath)) {
+        this.statusBar.createSpan({ text: 'canvas', cls: 'vtt-canvas-badge' });
+      }
+      this.statusBar.createSpan({ text: ` · ${timeStr}`, cls: 'vtt-status-text' });
     } else if (status.status === 'paused') {
       this.statusBar.createSpan({ cls: 'vtt-status-dot vtt-status-dot--paused' });
       const reason = status.reason === 'idle' ? 'idle' : status.reason === 'suspend' ? 'suspended' : 'excluded';

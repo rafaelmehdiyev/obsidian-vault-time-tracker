@@ -152,6 +152,17 @@
   margin-left: 2px;
 }
 
+.vtt-canvas-badge {
+  font-size: 0.72em;
+  color: var(--text-faint);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-left: 5px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
 /* Footer / total rows */
 .vtt-total-row td {
   font-weight: 600;
@@ -220,7 +231,10 @@
   font-size: var(--font-ui-smaller);
   white-space: nowrap;
   width: 1%;
-  padding-right: 8px !important;
+}
+
+.vtt-table .vtt-folder-col {
+  padding-right: 8px;
 }
 
 .vtt-sortable {

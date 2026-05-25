@@ -7,7 +7,7 @@ import { DashboardView } from './view/DashboardView';
 import { VTTSettingsTab } from './settings';
 import { PluginData, VIEW_TYPE, DASHBOARD_VIEW_TYPE } from './types';
 import { runTimeSmokeTests } from './time';
-import { formatDuration } from './util';
+import { formatDuration, isTrackedExtension, isCanvasPath, stripKnownExtension } from './util';
 
 export default class VaultTimeTrackerPlugin extends Plugin {
   storage!: Storage;
@@ -77,7 +77,7 @@ export default class VaultTimeTrackerPlugin extends Plugin {
     // Vault events
     this.registerEvent(
       this.app.vault.on('rename', (file: TAbstractFile, oldPath: string) => {
-        if (file instanceof TFile && file.extension === 'md') {
+        if (file instanceof TFile && isTrackedExtension(file.extension)) {
           this.storage.handleRename(oldPath, file.path);
           this.tracker.handleRename(oldPath, file.path);
         }
@@ -86,8 +86,8 @@ export default class VaultTimeTrackerPlugin extends Plugin {
 
     this.registerEvent(
       this.app.vault.on('delete', (file: TAbstractFile) => {
-        if (file instanceof TFile && file.extension === 'md') {
-          // If the deleted note was being tracked, stop tracking it
+        if (file instanceof TFile && isTrackedExtension(file.extension)) {
+          // If the deleted file was being tracked, stop tracking it
           if (this.tracker.getActiveNotePath() === file.path) {
             this.tracker.onFileOpen(null);
           }
@@ -113,6 +113,9 @@ export default class VaultTimeTrackerPlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.storage.getData());
+    // Apply any interval changes (tick speed, save interval) without
+    // disturbing the active session.
+    this.tracker.refreshIntervals();
   }
 
   private async activateView(): Promise<void> {
@@ -162,7 +165,9 @@ export default class VaultTimeTrackerPlugin extends Plugin {
       const timeStr = live ? formatDuration(live.totalMs) : '0s';
       // Show a small clock icon + today's total for the active note
       this.statusBarEl.setText(`⏱ ${timeStr}`);
-      this.statusBarEl.setAttribute('aria-label', `Time Tracker: ${status.notePath.split('/').pop()?.replace(/\.md$/, '') ?? ''} — ${timeStr} today`);
+      const baseName = stripKnownExtension(status.notePath.split('/').pop() ?? '');
+      const canvasSuffix = isCanvasPath(status.notePath) ? ' (canvas)' : '';
+      this.statusBarEl.setAttribute('aria-label', `Time Tracker: ${baseName}${canvasSuffix} — ${timeStr} today`);
     } else if (status.status === 'paused') {
       this.statusBarEl.setText('⏸');
       this.statusBarEl.setAttribute('aria-label', 'Time Tracker: paused');

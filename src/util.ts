@@ -1,3 +1,19 @@
+export const TRACKED_EXTENSIONS = ['md', 'canvas'] as const;
+
+export function isTrackedExtension(ext: string): boolean {
+  return (TRACKED_EXTENSIONS as readonly string[]).includes(ext);
+}
+
+export function isCanvasPath(path: string): boolean {
+  return path.endsWith('.canvas');
+}
+
+export function stripKnownExtension(filename: string): string {
+  if (filename.endsWith('.md'))     return filename.slice(0, -3);
+  if (filename.endsWith('.canvas')) return filename.slice(0, -7);
+  return filename;
+}
+
 export function formatDuration(ms: number): string {
   if (ms <= 0) return '0s';
   const totalSeconds = Math.floor(ms / 1000);
@@ -26,14 +42,14 @@ export function isExcluded(notePath: string, excludedFolders: string[]): boolean
 export function getNoteName(path: string): string {
   const parts = path.split('/');
   const filename = parts[parts.length - 1];
-  return filename.endsWith('.md') ? filename.slice(0, -3) : filename;
+  return stripKnownExtension(filename);
 }
 
-export function getNoteDisplay(path: string): { folder: string; name: string; full: string } {
+export function getNoteDisplay(path: string): { folder: string; name: string; full: string; isCanvas: boolean } {
   const parts = path.split('/');
   const filename = parts.pop() ?? path;
-  const name = filename.endsWith('.md') ? filename.slice(0, -3) : filename;
-  return { folder: parts.join('/'), name, full: path };
+  const name = stripKnownExtension(filename);
+  return { folder: parts.join('/'), name, full: path, isCanvas: isCanvasPath(path) };
 }
 
 /**

@@ -3,7 +3,7 @@ import { DASHBOARD_VIEW_TYPE } from '../types';
 import { Storage } from '../storage';
 import { Tracker, TickListener } from '../tracker';
 import { localDate } from '../time';
-import { formatDuration, getNoteDisplay, getWeekDates, getMonthDates, shortDayLabel } from '../util';
+import { formatDuration, getNoteDisplay, getWeekDates, getMonthDates, shortDayLabel, isCanvasPath } from '../util';
 import type VaultTimeTrackerPlugin from '../main';
 
 type Period = 'daily' | 'weekly' | 'monthly';
@@ -373,6 +373,9 @@ export class DashboardView extends ItemView {
         e.preventDefault();
         await this.app.workspace.openLinkText(path, '', false);
       });
+    }
+    if (isCanvasPath(path)) {
+      td.createEl('span', { text: 'canvas', cls: 'vtt-canvas-badge' });
     }
   }
 

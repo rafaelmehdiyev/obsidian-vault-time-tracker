@@ -2,7 +2,7 @@ import { App } from 'obsidian';
 import { Storage } from '../storage';
 import { Tracker } from '../tracker';
 import { localDate } from '../time';
-import { formatDuration, getNoteName } from '../util';
+import { formatDuration, getNoteName, isCanvasPath } from '../util';
 
 export class DailyTab {
   private container: HTMLElement;
@@ -66,6 +66,9 @@ export class DailyTab {
           const file = this.app.vault.getAbstractFileByPath(path);
           if (file) await this.app.workspace.openLinkText(path, '', false);
         });
+      }
+      if (isCanvasPath(path)) {
+        nameTd.createEl('span', { text: 'canvas', cls: 'vtt-canvas-badge' });
       }
 
       tr.createEl('td', { text: formatDuration(ms), cls: 'vtt-time-col vtt-time-value' });

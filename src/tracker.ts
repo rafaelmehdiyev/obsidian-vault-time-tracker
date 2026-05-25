@@ -1,8 +1,8 @@
-import { App, TFile, WorkspaceLeaf } from 'obsidian';
+import { App, Notice, TFile, WorkspaceLeaf } from 'obsidian';
 import { Storage } from './storage';
 import { IdleDetector } from './idle';
 import { localDate, localMidnightUtc } from './time';
-import { isExcluded } from './util';
+import { isExcluded, isTrackedExtension } from './util';
 import { Session, TrackerStatus } from './types';
 
 export type TickListener = (status: TrackerStatus, liveTotalMs: number) => void;
@@ -56,9 +56,24 @@ export class Tracker {
 
     // Pick up the currently active note if one is already open
     const activeFile = this.app.workspace.getActiveFile();
-    if (activeFile instanceof TFile && activeFile.extension === 'md') {
+    if (activeFile instanceof TFile && isTrackedExtension(activeFile.extension)) {
       this.beginTracking(activeFile.path);
     }
+  }
+
+  /** Re-read tickIntervalMs / saveIntervalSeconds from settings and restart the
+   *  internal intervals without touching the active session. Call this whenever
+   *  the user saves settings so changes take effect immediately. */
+  refreshIntervals(): void {
+    const settings = this.storage.getSettings();
+    const tickMs = Math.max(200,  Number.isFinite(settings.tickIntervalMs)      ? settings.tickIntervalMs              : 1000);
+    const saveMs = Math.max(5000, Number.isFinite(settings.saveIntervalSeconds) ? settings.saveIntervalSeconds * 1000  : 30000);
+
+    if (this.tickIntervalId !== null) { clearInterval(this.tickIntervalId); }
+    if (this.saveIntervalId !== null) { clearInterval(this.saveIntervalId); }
+
+    this.tickIntervalId = setInterval(() => this.tick(), tickMs);
+    this.saveIntervalId = setInterval(() => this.periodicSave(), saveMs);
   }
 
   stop(): void {
@@ -72,17 +87,36 @@ export class Tracker {
   }
 
   onActiveLeafChange(leaf: WorkspaceLeaf | null): void {
-    if (!leaf) return;
+    if (!leaf) {
+      // No active leaf at all — file was closed, stop tracking
+      if (this.status.status !== 'idle') {
+        this.finalizeSession('switch');
+        this.status = { status: 'idle' };
+        this.activeSession = null;
+      }
+      return;
+    }
+
     const file = (leaf.view as unknown as { file?: unknown }).file;
 
-    if (file instanceof TFile && file.extension === 'md') {
+    if (file instanceof TFile && isTrackedExtension(file.extension)) {
       if (file.path !== this.lastKnownNotePath) {
         this.switchNote(file.path);
       }
       return;
     }
 
-    // Non-note view — keep counting on the last note if setting allows
+    // Non-tracked view is now active.
+    // If the last known file is no longer open in any leaf, the user closed it → go idle.
+    if (this.lastKnownNotePath && !this.isFileOpenInWorkspace(this.lastKnownNotePath)) {
+      this.finalizeSession('switch');
+      this.status = { status: 'idle' };
+      this.activeSession = null;
+      return;
+    }
+
+    // The file is still open in another leaf (e.g. user switched to graph/settings).
+    // Respect countWhileNonNoteViewActive.
     if (!this.storage.getSettings().countWhileNonNoteViewActive) {
       this.finalizeSession('switch');
       this.status = { status: 'idle' };
@@ -90,8 +124,33 @@ export class Tracker {
     }
   }
 
+  // ─── Private helpers ────────────────────────────────────────────────────────
+
+  /** Returns true if the given path is still open in any workspace leaf
+   *  (root, sidebars, split panes, and floating/popout windows). */
+  private isFileOpenInWorkspace(path: string): boolean {
+    let found = false;
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      if (found) return;
+      const f = (leaf.view as unknown as { file?: unknown }).file;
+      if (f instanceof TFile && f.path === path) found = true;
+    });
+    return found;
+  }
+
   onFileOpen(file: TFile | null): void {
-    if (!file || file.extension !== 'md') return;
+    if (!file) {
+      // file-open(null) fires after the active file is cleared — the leaf's .file
+      // is already null by this point, so iterateAllLeaves won't see it.
+      // If the last tracked file is gone from every leaf, go idle.
+      if (this.lastKnownNotePath && !this.isFileOpenInWorkspace(this.lastKnownNotePath)) {
+        this.finalizeSession('switch');
+        this.status = { status: 'idle' };
+        this.activeSession = null;
+      }
+      return;
+    }
+    if (!isTrackedExtension(file.extension)) return;
     if (file.path !== this.lastKnownNotePath) {
       this.switchNote(file.path);
     }
@@ -224,6 +283,20 @@ export class Tracker {
       }
     }
 
+    // Belt-and-suspenders: verify the tracked file is still open in the workspace.
+    // Events (active-leaf-change, file-open) have ordering gaps when a tab is
+    // closed, so this tick-level check guarantees we catch it within one tick.
+    if (this.lastKnownNotePath && !this.isFileOpenInWorkspace(this.lastKnownNotePath)) {
+      if (this.status.status === 'tracking') {
+        this.finalizeSession('switch');
+      }
+      this.status = { status: 'idle' };
+      this.activeSession = null;
+      this.lastKnownNotePath = null;
+      this.notifyListeners();
+      return;
+    }
+
     if (this.status.status !== 'tracking') {
       this.notifyListeners();
       return;
@@ -335,8 +408,13 @@ export class Tracker {
   }
 
   private onResume(): void {
-    // Resume tracking on last known note after wake
-    if (this.lastKnownNotePath && !isExcluded(this.lastKnownNotePath, this.storage.getSettings().excludedFolders)) {
+    // Only resume if the last known file is actually still open (it may have been
+    // closed while the device was suspended).
+    if (
+      this.lastKnownNotePath &&
+      this.isFileOpenInWorkspace(this.lastKnownNotePath) &&
+      !isExcluded(this.lastKnownNotePath, this.storage.getSettings().excludedFolders)
+    ) {
       this.beginTracking(this.lastKnownNotePath);
     }
   }
@@ -359,7 +437,10 @@ export class Tracker {
     const pruneDays = Math.max(1, this.storage.getSettings().pruneSessionsAfterDays || 7);
     this.storage.pruneOldSessions(pruneDays);
     this.storage.pruneOldRenames(pruneDays);
-    this.storage.flush().catch(err => console.error('[VTT] save error:', err));
+    this.storage.flush().catch(err => {
+      console.error('[VTT] save error:', err);
+      new Notice('⏱ Time Tracker: failed to save data — check the console for details.');
+    });
   }
 
   private notifyListeners(): void {
